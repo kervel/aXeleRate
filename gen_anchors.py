@@ -2,7 +2,7 @@ import random
 import argparse
 import numpy as np
 import cv2
-
+### : [0.20,0.71, 0.34,0.96, 0.40,1.30, 0.41,1.66, 0.48,1.65, 0.56,1.62, 0.67,0.81, 1.04,2.32, 1.04,1.17, 3.02,3.01]
 from axelerate.networks.yolo.backend.utils.annotation import parse_annotation
 import json
 
@@ -17,7 +17,9 @@ argparser.add_argument(
 argparser.add_argument(
     '-a',
     '--anchors',
+    type=int,
     default=5,
+
     help='number of anchors to use')
 
 def IOU(ann, centroids):
