@@ -92,7 +92,8 @@ class Converter(object):
         image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
         for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
         temp_folder = os.path.join(os.path.dirname(__file__),'tmp')
-        os.mkdir(temp_folder)
+        if not os.path.exists(temp_folder):
+            os.mkdir(temp_folder)
         for filename in image_files_list[:num_imgs]:
             image = cv2.imread(filename)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
