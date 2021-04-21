@@ -2,25 +2,10 @@ import random
 import argparse
 import numpy as np
 import cv2
-### : [0.20,0.71, 0.34,0.96, 0.40,1.30, 0.41,1.66, 0.48,1.65, 0.56,1.62, 0.67,0.81, 1.04,2.32, 1.04,1.17, 3.02,3.01]
 from axelerate.networks.yolo.backend.utils.annotation import parse_annotation
 import json
 
-argparser = argparse.ArgumentParser()
-
-argparser.add_argument(
-    '-c',
-    '--conf',
-    default='config.json',
-    help='path to configuration file')
-
-argparser.add_argument(
-    '-a',
-    '--anchors',
-    type=int,
-    default=5,
-
-    help='number of anchors to use')
+## Adapted from https://github.com/experiencor/keras-yolo2/blob/master/gen_anchors.py (MIT license)
 
 def IOU(ann, centroids):
     w, h = ann
@@ -50,7 +35,7 @@ def avg_IOU(anns, centroids):
 
     return sum/n
 
-def print_anchors(centroids):
+def to_anchors(centroids):
     anchors = centroids.copy()
 
     widths = anchors[:, 0]
@@ -63,8 +48,7 @@ def print_anchors(centroids):
     #there should not be comma after last anchor, that's why
     r += '%0.2f,%0.2f' % (anchors[sorted_indices[-1:],0], anchors[sorted_indices[-1:],1])
     r += "]"
-
-    print(r)
+    return r
 
 def run_kmeans(ann_dims, anchor_num):
     ann_num = ann_dims.shape[0]
@@ -103,12 +87,8 @@ def run_kmeans(ann_dims, anchor_num):
         prev_assignments = assignments.copy()
         old_distances = distances.copy()
 
-def main(argv):
-    config_path = args.conf
-    num_anchors = args.anchors
-
-    with open(config_path) as config_buffer:
-        config = json.loads(config_buffer.read())
+def generate_anchors(config_dict: dict, num_anchors: int):
+    config = config_dict
 
     train_imgs = parse_annotation(config['train']['train_annot_folder'],
                                                 config['train']['train_image_folder'],
@@ -135,8 +115,4 @@ def main(argv):
 
     # write anchors to file
     print('\naverage IOU for', num_anchors, 'anchors:', '%0.2f' % avg_IOU(annotation_dims, centroids))
-    print_anchors(centroids)
-
-if __name__ == '__main__':
-    args = argparser.parse_args()
-    main(args)
+    return to_anchors(centroids)
