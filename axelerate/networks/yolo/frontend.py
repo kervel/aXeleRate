@@ -47,6 +47,8 @@ def create_yolo(architecture,
     return yolo
 
 
+
+
 class YOLO(object):
     def __init__(self,
                  yolo_network,
@@ -71,6 +73,31 @@ class YOLO(object):
             self._yolo_network.load_weights(weight_path, by_name=True)
         else:
             print("Failed to load pre-trained weights for the whole model. It might be because you didn't specify any or the weight file cannot be found")
+
+    def predict_batch(self, images, height, width, threshold=0.3):
+        def _to_original_scale(boxes):
+            #height, width = image.shape[:2]
+            minmax_boxes = to_minmax(boxes)
+            minmax_boxes[:,0] *= width
+            minmax_boxes[:,2] *= width
+            minmax_boxes[:,1] *= height
+            minmax_boxes[:,3] *= height
+            return minmax_boxes.astype(np.int)
+
+        start_time = time.time()
+        netouts = self._yolo_network.forward_batch(images)
+        elapsed_ms = (time.time() - start_time) * 1000
+        boxes_arr = []
+        probs_arr = []
+        for n in netouts:
+            netout = n
+            boxes, probs = self._yolo_decoder.run(netout, threshold)
+            if len(boxes) > 0:
+                boxes = _to_original_scale(boxes)
+            boxes_arr.append(boxes)
+            probs_arr.append(probs)
+        return elapsed_ms, boxes_arr, probs_arr
+        
 
     def predict(self, image, height, width, threshold=0.3):
         """

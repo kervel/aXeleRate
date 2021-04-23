@@ -2,6 +2,7 @@ import os
 import tensorflow as tf
 import numpy as np
 import tensorflow.keras
+from tqdm import tqdm
 
 class MapEvaluation(tensorflow.keras.callbacks.Callback):
     """ Evaluate a given dataset using a given model.
@@ -83,7 +84,7 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
         return _map, average_precisions
 
     def _calc_avg_precisions(self):
-
+        print("Start calc mAP")
         # gather all detections and annotations
         all_detections = [[None for _ in range(len(self._yolo._labels))]
                           for _ in range(len(self._generator)*self._generator._batch_size)]
@@ -91,14 +92,13 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
                            for _ in range(len(self._generator)*self._generator._batch_size)]
 
         counter = 0
-        for i in range(len(self._generator)):
+        for i in tqdm(range(len(self._generator))):
             img_batch, annotations = self._generator.load_batch(i)
+            h, w = img_batch[0].shape[:2]
+            _, boxarray, probarray = self._yolo.predict_batch(np.stack(img_batch), h, w, threshold=self._score_threshold)
             for j in range(len(annotations)):
-                raw_image = img_batch[j]
-                height, width = raw_image.shape[:2]
-                input_image = np.expand_dims(raw_image, 0)
-                # make the boxes and the labels
-                _, pred_boxes, probs = self._yolo.predict(input_image, height, width, threshold=self._score_threshold)
+                pred_boxes = boxarray[j]
+                probs = probarray[j]
 
                 if len(pred_boxes) > 0:
                     score = np.array(probs)  
@@ -176,7 +176,7 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
             # compute average precision
             average_precision = compute_ap(recall, precision)
             average_precisions[label] = average_precision
-
+        print("End calc mAP")
         return average_precisions
 
 def compute_overlap(a, b):

@@ -56,6 +56,10 @@ class YoloNetwork(object):
     def load_weights(self, weight_path, by_name):
         self._model.load_weights(weight_path, by_name=by_name)
         
+    def forward_batch(self, images):
+        netouts = self._model.predict(images)
+        return netouts
+
     def forward(self, image):
         netout = self._model.predict(image)[0]
         return netout
