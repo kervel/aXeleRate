@@ -96,10 +96,8 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
             img_batch, annotations = self._generator.load_batch(i)
             h, w = img_batch[0].shape[:2]
             _, boxarray, probarray = self._yolo.predict_batch(np.stack(img_batch), h, w, threshold=self._score_threshold)
-            for j in range(len(annotations)):
-                pred_boxes = boxarray[j]
-                probs = probarray[j]
-
+            
+            for pred_boxes, probs, annot in zip(boxarray, probarray, annotations):
                 if len(pred_boxes) > 0:
                     score = np.array(probs)  
                     pred_labels = np.argmax(score,axis=1)
@@ -119,7 +117,7 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
 
                 # copy ground truth to all_annotations
                 for label in range(len(self._yolo._labels)):
-                    all_annotations[counter][label] = annotations[j][annotations[j][:, 4] == label, :4].copy()
+                    all_annotations[counter][label] = annot[annot[:, 4] == label, :4].copy()
                 counter += 1
 
         # compute mAP by comparing all detections and all annotations

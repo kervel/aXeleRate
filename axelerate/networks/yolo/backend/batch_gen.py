@@ -37,6 +37,31 @@ def create_batch_generator(annotations,
                             repeat_times)
     return worker
 
+class CacheBatchGen(Sequence):
+    def __init__(self, innergen):
+        self.innergen = innergen
+        self.cache = {}
+        self.max_size = 50
+        self._batch_size = self.innergen._batch_size
+        self._repeat_times = self.innergen._repeat_times
+
+    def __len__(self):
+        return len(self.innergen)
+
+    def load_batch(self, idx):
+        if idx in self.cache:
+            return self.cache[idx]
+        else:
+            b = self.innergen.load_batch(idx)
+            if len(self.cache)  < self.max_size:
+                self.cache[idx] = b
+            return b
+    
+    def __getitem__(self, index):
+        return self.innergen[index]
+    
+    def on_epoch_end(self):
+        self.innergen.on_epoch_end()
 
 class BatchGenerator(Sequence):
     def __init__(self,
@@ -90,6 +115,7 @@ class BatchGenerator(Sequence):
         # Args
             idx : batch index
         """
+
         x_batch = []
         y_batch= []
         for i in range(self._batch_size):

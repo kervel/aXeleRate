@@ -10,7 +10,7 @@ from axelerate.networks.common_utils.fit import train
 from axelerate.networks.yolo.backend.decoder import YoloDecoder
 from axelerate.networks.yolo.backend.loss import YoloLoss
 from axelerate.networks.yolo.backend.network import create_yolo_network
-from axelerate.networks.yolo.backend.batch_gen import create_batch_generator
+from axelerate.networks.yolo.backend.batch_gen import create_batch_generator, CacheBatchGen
 from axelerate.networks.yolo.backend.utils.annotation import get_train_annotations, get_unique_labels
 from axelerate.networks.yolo.backend.utils.box import to_minmax
 
@@ -157,6 +157,7 @@ class YOLO(object):
         
         train_batch_generator = self._get_batch_generator(train_annotations, batch_size, train_times, jitter=jitter)
         valid_batch_generator = self._get_batch_generator(valid_annotations, batch_size, valid_times, jitter=False)
+        valid_batch_generator = CacheBatchGen(valid_batch_generator)
         
         # 2. To train model get keras model instance & loss fucntion
         model = self._yolo_network.get_model(first_trainable_layer)
