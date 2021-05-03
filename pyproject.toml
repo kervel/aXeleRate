@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "axelerate"
+version = "0.1.0"
+description = ""
+authors = ["Frank Dekervel <kervel@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+tensorflow = "^2.4.1"
+jupyter = "^1.0.0"
+imgaug = "^0.4.0"
+requests = "^2.25.1"
+Pillow = "^8.2.0"
+tqdm = "^4.60.0"
+sklearn = "^0.0"
+matplotlib = "^3.4.1"
+pascal-voc-writer = "^0.1.4"
+tf2onnx = "^1.8.4"
+defusedxml = "^0.7.1"
+keras = "^2.4.3"
+flamegraph = {git = "https://github.com/evanhempel/python-flamegraph.git"}
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
