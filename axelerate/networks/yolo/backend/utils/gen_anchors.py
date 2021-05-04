@@ -116,3 +116,24 @@ def generate_anchors(config_dict: dict, num_anchors: int):
     # write anchors to file
     print('\naverage IOU for', num_anchors, 'anchors:', '%0.2f' % avg_IOU(annotation_dims, centroids))
     return to_anchors(centroids)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--annotations_folder", required=True, type=str)
+    parser.add_argument("--images_folder", required=True, type=str)
+    parser.add_argument("--labels", required=True, type=str)
+    parser.add_argument("--input_size", default=224, type=int)
+    parser.add_argument("--num_anchors", default=5, type=int)
+    args = parser.parse_args()
+    cd = {}
+    cd["train"] = {}
+    cd["train"]["train_annot_folder"] = args.annotations_folder
+    cd["train"]["train_image_folder"] = args.images_folder
+    cd["model"] = {}
+    cd["model"]["labels"] = [x.strip() for x in args.labels.split(",")]
+    cd["model"]["input_size"] = args.input_size
+    anch = generate_anchors(cd, args.num_anchors)
+    print("***** ANCHORS *****")
+    print(anch)
+
+
