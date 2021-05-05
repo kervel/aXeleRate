@@ -28,7 +28,7 @@ def run_command(cmd, cwd=None):
     return exit_code
 
 class Converter(object):
-    def __init__(self, converter_type, backend=None, dataset_path=None):
+    def __init__(self, converter_type, backend=None, dataset_path=None, valid_annot_path = None):
         if 'tflite' in converter_type:
             print('Tflite Converter ready')
 
@@ -67,14 +67,22 @@ class Converter(object):
         self._converter_type = converter_type
         self._backend = backend
         self._dataset_path=dataset_path
+        self._valid_annot_path=valid_annot_path
+
+    def find_valid_images(self):
+        image_files_list = []
+        image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
+        for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png', '/**/*.PNG', '/**/*.JPG', '/**/*.JPEG']: image_files_list.extend(image_search(ext))
+        if len(image_files_list) == 0:
+            print("did not find any validation images !!!!!")
+        return image_files_list
+
 
     def edgetpu_dataset_gen(self):
         num_imgs = 300
-        image_files_list = []
+        image_files_list = self.find_valid_images()
         from axelerate.networks.common_utils.feature import create_feature_extractor
         backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
-        image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
-        for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
 
         for filename in image_files_list[:num_imgs]:
             image = cv2.imread(filename)
@@ -86,11 +94,9 @@ class Converter(object):
 
     def k210_dataset_gen(self):
         num_imgs = 300
-        image_files_list = []
+        image_files_list = self.find_valid_images()
         from axelerate.networks.common_utils.feature import create_feature_extractor
         backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
-        image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
-        for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
         temp_folder = os.path.join(os.path.dirname(__file__),'tmp')
         if not os.path.exists(temp_folder):
             os.mkdir(temp_folder)
@@ -122,7 +128,10 @@ class Converter(object):
         cmd = '{} compile "{}" "{}" -i tflite --weights-quantize-threshold 1000 --dataset-format raw --dataset "{}"'.format(k210_converter_path, model_path, output_path, folder_name)
         print(cmd)
         result = run_command(cmd)
-        shutil.rmtree(folder_name, ignore_errors=True)
+        if result != 255:
+            shutil.rmtree(folder_name, ignore_errors=True)
+        else:
+            print("not removing validation set because command failed (", folder_name, ")")
         print(result)
 
     def convert_ir(self, model_path, model_layers):
