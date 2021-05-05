@@ -28,7 +28,7 @@ def run_command(cmd, cwd=None):
     return exit_code
 
 class Converter(object):
-    def __init__(self, converter_type, backend=None, dataset_path=None, valid_annot_path = None):
+    def __init__(self, converter_type, backend=None, dataset_path=None):
         if 'tflite' in converter_type:
             print('Tflite Converter ready')
 
@@ -67,7 +67,6 @@ class Converter(object):
         self._converter_type = converter_type
         self._backend = backend
         self._dataset_path=dataset_path
-        self._valid_annot_path=valid_annot_path
 
     def find_valid_images(self):
         image_files_list = []
