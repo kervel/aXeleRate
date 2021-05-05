@@ -48,6 +48,15 @@ def prepare_image(img_path, network):
     input_image = np.expand_dims(input_image, 0)
     return orig_image, input_image
 
+
+def find_valid_images(pth):
+    image_files_list = []
+    image_search = lambda ext : glob.glob(pth + ext, recursive=True)
+    for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png', '/**/*.PNG', '/**/*.JPG', '/**/*.JPEG']: image_files_list.extend(image_search(ext))
+    if len(image_files_list) == 0:
+        print("did not find any validation images !!!!!")
+    return image_files_list
+
 def setup_inference(config, weights, threshold=0.3, create_dataset=None):
     try:
         matplotlib.use('TkAgg')
@@ -101,7 +110,7 @@ def setup_inference(config, weights, threshold=0.3, create_dataset=None):
         
         font = cv2.FONT_HERSHEY_SIMPLEX
         valid_image_folder = config['train']['valid_image_folder']
-        image_files_list = glob.glob(valid_image_folder + '/**/*.jpg', recursive=True)
+        image_files_list = find_valid_images(valid_image_folder)
         
         inference_time = []
         for filename in image_files_list:
@@ -140,7 +149,7 @@ def setup_inference(config, weights, threshold=0.3, create_dataset=None):
         yolo.load_weights(weights)
         
         valid_image_folder = config['train']['valid_image_folder']
-        image_files_list = glob.glob(valid_image_folder + '/**/*.jpg', recursive=True)
+        image_files_list = find_valid_images(valid_image_folder)
         
         inference_time = []
         for i in range(len(image_files_list)):
