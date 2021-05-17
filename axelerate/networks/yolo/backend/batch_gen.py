@@ -40,6 +40,7 @@ def create_batch_generator(annotations,
 class CacheBatchGen(Sequence):
     def __init__(self, innergen):
         self.innergen = innergen
+        print("CREATING A CACHEBATCHGEN")
         self.cache = {}
         self.max_size = 50
         self._batch_size = self.innergen._batch_size
