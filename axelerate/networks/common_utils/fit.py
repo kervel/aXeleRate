@@ -39,6 +39,8 @@ def train(model,
     train_start = time.time()
     train_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     path = os.path.join(project_folder, train_date)
+    log_folder = os.path.join("logs", train_date)
+    os.makedirs(log_folder, exist_ok=True)
     basename = network.__class__.__name__ + "_best_"+ metrics
     print('Current training session folder is {}'.format(path))
     os.makedirs(path)
@@ -73,11 +75,11 @@ def train(model,
 
     # 3. create loss function
     model.compile(loss=loss_func, optimizer=optimizer, metrics=metrics_dict[metrics])
-    model.summary()
+    #model.summary()
 
     #4 create callbacks   
     
-    tensorboard_callback = tf.keras.callbacks.TensorBoard("logs", histogram_freq=1)
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_folder, histogram_freq=1)
     
     early_stop = EarlyStopping(monitor=metrics, 
                        min_delta=0.001, 
@@ -89,9 +91,9 @@ def train(model,
     checkpoint = ModelCheckpoint(save_weights_name, 
                                  monitor=metrics, 
                                  verbose=1, 
-                                 save_best_only=True, 
+                                 save_best_only=False, 
                                  mode='auto', 
-                                 period=1)
+                                 period=5)
                                  
     reduce_lr = ReduceLROnPlateau(monitor=metrics, factor=0.2,
                               patience=10, min_lr=0.00001,verbose=1)
@@ -101,6 +103,7 @@ def train(model,
                                      save_name=save_weights_name,
                                      iou_threshold=0.5,
                                      score_threshold=0.3,
+                                     period=3,
                                      tensorboard=tensorboard_callback)
 
     warm_up_lr = WarmUpCosineDecayScheduler(learning_rate_base=learning_rate,
@@ -117,6 +120,7 @@ def train(model,
 
     # 4. training
     try:
+        model.summary()
         model.fit_generator(generator = train_batch_gen,
                         steps_per_epoch  = len(train_batch_gen), 
                         epochs           = nb_epoch,
@@ -124,7 +128,7 @@ def train(model,
                         validation_steps = len(valid_batch_gen),
                         callbacks        = callbacks,                        
                         verbose          = 1,
-                        workers          = 4,
+                        workers          = 15,
                         max_queue_size   = 10,
                         use_multiprocessing = True)
     except KeyboardInterrupt:

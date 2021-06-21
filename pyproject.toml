@@ -19,6 +19,7 @@ tf2onnx = "^1.8.4"
 defusedxml = "^0.7.1"
 keras = "^2.4.3"
 flamegraph = {git = "https://github.com/evanhempel/python-flamegraph.git"}
+guppy3 = "^3.1.0"
 
 [tool.poetry.dev-dependencies]
 

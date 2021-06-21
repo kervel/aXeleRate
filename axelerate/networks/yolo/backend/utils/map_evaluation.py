@@ -65,6 +65,10 @@ class MapEvaluation(tensorflow.keras.callbacks.Callback):
                     self.model.save(self._save_name,overwrite=True,include_optimizer=False)
                 else:
                     print("mAP did not improve from {}.".format(self.bestMap))
+                    if epoch % 5 == 0:
+                        print("ok saving it anyway epoch mod 5 is zero")
+                        self.model.save(self._save_name + "_ssht_epoch_" + str(epoch) + ".h5",overwrite=True,include_optimizer=False)
+
 
 
             self.loss.append(logs.get("loss"))
